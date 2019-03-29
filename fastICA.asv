@@ -21,12 +21,13 @@ t3 = t3(1:end);
 
 % sound(y1,Fs1)
 
-% subplot(2,2,1);
-% plot(t1,y1);
-% subplot(2,2,2);
-% plot(t2,y2);
-% subplot(2,2,3);
-% plot(t3,y3);
+figure(1)
+subplot(2,2,1);
+plot(t1,y1);
+subplot(2,2,2);
+plot(t2,y2);
+subplot(2,2,3);
+plot(t3,y3);
 
 % Wyrównywanie sygna³ów, tak ¿eby trwa³y tyle samo czasu
 koniec = 243653;
@@ -40,5 +41,24 @@ y2 = y2(1:1:koniec);
 y3 = y3(1:1:koniec);
 
 % Mieszanina dwóch sygna³ów 
-y1 = 
+Y1 = 0.4*y1 + 0.9*y2;
+Y2 = 0.9*y1 + 0.2*y2;
+
+figure(2)
+subplot(2,1,1);
+plot(t1,Y1);
+subplot(2,1,2);
+plot(t1,Y2);
+
+% sound(ym1,Fs1);
+% sound(ym2,Fs1);
+
+% Prewhite
+N = 2; % Iloœæ mieszanin
+M = koniec;
+X = [Y1'; Y2'];
+plot(X
+for i=1:N
+        X(i,:) = X(i,:) - (1/M)*sum(X(i,:));
+end
 
