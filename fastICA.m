@@ -1,3 +1,4 @@
+clear; clc;
 format compact
 format long
 % Czytanie z pliku audio
@@ -43,8 +44,8 @@ y2 = y2(1:1:koniec);
 y3 = y3(1:1:koniec);
 
 % Mieszanina dwóch sygna³ów 
-Y1 = 0.4*y1 + 0.9*y2;
-Y2 = 0.9*y1 + 0.2*y2;
+YM1 = 0.4*y1 + 0.9*y2;
+YM2 = 0.9*y1 + 0.2*y2;
 
 % figure(2)
 % subplot(2,1,1);
@@ -62,7 +63,7 @@ Y2 = 0.9*y1 + 0.2*y2;
 % Centrowanie
 N = 2; % Iloœæ mieszanin
 M = koniec;
-X = [Y1'; Y2'];
+X = [YM1'; YM2'];
 
 % figure(4)
 % subplot(2,1,1);
@@ -102,7 +103,7 @@ norm(w0)
 % Iteracja
 eps = 1e-15;
 wi_1 = w0;
-Z = [XX(1,:)',XX(2,:)']';
+Z = [XX(1,:)' XX(2,:)']';
 
 while 1 
     wi = (1/koniec)*sum(Z*(wi_1'*Z)'.^3) - 3*wi_1;
@@ -115,5 +116,17 @@ while 1
     wi_1 = wi;
 end
 
-czyste1 = wi'*Z;
-% sound(czyste1,Fs1)
+vi = [ -wi(2); wi(1)];
+
+czyste = [wi'; vi']*Z;
+czyste1 = czyste(1,:)-czyste(2,:);
+
+czyste1 = czyste1/norm(czyste1);
+czyste1 = czyste1.*109;
+
+
+% 
+% plot(t1,y1,'b-',t1,czyste1,'r-');
+% axis([0 2 -5 5]);
+sound(czyste1,Fs1)
+% sound(y1,Fs1)

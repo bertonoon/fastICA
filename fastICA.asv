@@ -1,3 +1,6 @@
+clear; clc;
+format compact
+format long
 % Czytanie z pliku audio
 
 [y1,Fs1] = audioread('mial_ogromne_szczescie.wav');
@@ -21,13 +24,13 @@ t3 = t3(1:end);
 
 % sound(y1,Fs1)
 
-figure(1)
-subplot(2,2,1);
-plot(t1,y1);
-subplot(2,2,2);
-plot(t2,y2);
-subplot(2,2,3);
-plot(t3,y3);
+% figure(1)
+% subplot(2,2,1);
+% plot(t1,y1);
+% subplot(2,2,2);
+% plot(t2,y2);
+% subplot(2,2,3);
+% plot(t3,y3);
 
 % Wyrównywanie sygna³ów, tak ¿eby trwa³y tyle samo czasu
 koniec = 243653;
@@ -41,24 +44,90 @@ y2 = y2(1:1:koniec);
 y3 = y3(1:1:koniec);
 
 % Mieszanina dwóch sygna³ów 
-Y1 = 0.4*y1 + 0.9*y2;
-Y2 = 0.9*y1 + 0.2*y2;
+YM1 = 0.4*y1 + 0.9*y2;
+YM2 = 0.9*y1 + 0.2*y2;
 
-figure(2)
-subplot(2,1,1);
-plot(t1,Y1);
-subplot(2,1,2);
-plot(t1,Y2);
+% figure(2)
+% subplot(2,1,1);
+% plot(t1,Y1);
+% subplot(2,1,2);
+% plot(t1,Y2);
+% 
+% figure(3)
+% plot(Y1,Y2,'.');
 
 % sound(ym1,Fs1);
+% pause
 % sound(ym2,Fs1);
 
-% Prewhite
+% Centrowanie
 N = 2; % Iloœæ mieszanin
 M = koniec;
-X = [Y1'; Y2'];
-plot(X
+X = [YM1'; YM2'];
+
+% figure(4)
+% subplot(2,1,1);
+% plot(t1,X(1,:));
+% subplot(2,1,2);
+% plot(t2,X(2,:));
+% hold on
+mx  = mean(X') 
 for i=1:N
         X(i,:) = X(i,:) - (1/M)*sum(X(i,:));
 end
 
+% figure(4)
+% subplot(2,1,1);
+% plot(t1,X(1,:));
+% subplot(2,1,2);
+% plot(t2,X(2,:));
+% hold off
+
+% Wybielanie
+c   = cov(X')		 % covariance
+sq  = inv(sqrtm(c));        % inverse of square root
+mx  = mean(X')             % mean
+XX  = X-mx'*ones(1,koniec); % subtract the mean
+XX  = 2*sq*XX;              
+cov(XX')                 % the covariance is now a diagonal matrix
+% figure(5); 
+% plot(XX(1,:), XX(2,:), '.');
+
+% Inicjalizacja
+a = rand(1);
+w0 = [a,0];
+w0(2) = sqrt(1 - (w0(1)^2));
+w0 = w0';
+norm(w0)
+
+% Iteracja
+eps = 1e-15;
+wi_1 = w0;
+Z = [XX(1,:)' XX(2,:)']';
+
+while 1 
+    wi = (1/koniec)*sum(Z*(wi_1'*Z)'.^3) - 3*wi_1;
+    wi = wi/norm(wi);
+    display(wi)
+
+    if ((wi'*wi_1)>1-eps) &&  ((wi'*wi_1)<1+eps)
+       break; 
+    end
+    wi_1 = wi;
+end
+
+vi = [ -wi(2); wi(1)];
+
+czyste = [wi'; vi']*Z;
+czyste1 = czyste(1,:)-czyste(2,:);
+
+czyste1 = czyste1/norm(czyste1);
+czyste1 = czyste1.*109;
+
+
+
+% 
+% plot(t1,y1,'b-',t1,czyste1,'r-');
+% axis([0 2 -5 5]);
+sound(czyste1,Fs1)
+% sound(y1,Fs1)
