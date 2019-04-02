@@ -45,7 +45,7 @@ y3 = y3(1:1:koniec);
 
 % Mieszanina dwóch sygna³ów 
 YM1 = 0.4*y1 + 0.9*y2;
-YM2 = 0.9*y1 + 0.2*y2;
+YM2 = 0.7*y1 + 0.2*y2;
 
 % figure(2)
 % subplot(2,1,1);
@@ -101,15 +101,25 @@ w0 = w0';
 norm(w0)
 
 % Iteracja
-eps = 1e-15;
+XX = XX';
+eps = 1e-6;
 wi_1 = w0;
-Z = [XX(1,:)' XX(2,:)']';
-
-while 1 
-    wi = (1/koniec)*sum(Z*(wi_1'*Z)'.^3) - 3*wi_1;
+Z = [XX(:,1) XX(:,2)]';
+wi = zeros(size(wi_1));
+while 1
+    pom = [0;0];
+    wi = Z*((wi_1'*Z)'.^3);
+    for i=1:1:2
+        for j=1:1:koniec
+            pom(i)=pom(i)+wi(i);
+        end
+    end
+    wi = pom;
+    wi = wi./koniec;
+    wi = wi-3*wi_1;
     wi = wi/norm(wi);
     display(wi)
-
+    
     if ((wi'*wi_1)>1-eps) &&  ((wi'*wi_1)<1+eps)
        break; 
     end
@@ -119,15 +129,19 @@ end
 vi = [ -wi(2); wi(1)];
 
 czyste = [wi'; vi']*Z;
-czyste1 = czyste(1,:)-czyste(2,:);
-
+czyste1 = czyste(1,:);
+czyste2 = czyste(2,:);
+% czyste1 = czyste(1,:)-czyste(2,:);
 czyste1 = czyste1/norm(czyste1);
 czyste1 = czyste1.*109;
 
-
+czyste2 = czyste2/norm(czyste2);
+czyste2 = czyste2.*109;
 
 % 
 % plot(t1,y1,'b-',t1,czyste1,'r-');
 % axis([0 2 -5 5]);
-sound(czyste1,Fs1)
+ sound(czyste1,Fs1)
+ pause
+ sound
 % sound(y1,Fs1)
