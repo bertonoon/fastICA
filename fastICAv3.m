@@ -44,8 +44,10 @@ y2 = y2(1:1:koniec);
 y3 = y3(1:1:koniec);
 
 % Mieszanina dwóch sygna³ów 
-YM1 = 0.4*y1 + 0.9*y2;
-YM2 = 0.7*y1 + 0.2*y2;
+% S - wspolczynniki mieszania 
+YM1 = 0.4*y1 + 0.9*y2 + 0.5*y3;
+YM2 = 0.7*y1 + 0.2*y2 + 0.4*y3;
+YM3 = 0.2*y1 + 0.5*y2 + 0.8*y3;
 
 % figure(2)
 % subplot(2,1,1);
@@ -61,55 +63,44 @@ YM2 = 0.7*y1 + 0.2*y2;
 % sound(ym2,Fs1);
 
 % Centrowanie
-N = 2; % Iloœæ mieszanin
+N = 3; % Iloœæ mieszanin
 M = koniec;
-X = [YM1'; YM2'];
+X = [YM1'; YM2'; YM3'];
 
-% figure(4)
-% subplot(2,1,1);
-% plot(t1,X(1,:));
-% subplot(2,1,2);
-% plot(t2,X(2,:));
-% hold on
-mx  = mean(X') 
+% Y = WX w przyblizeniu = S
+
+mx  = mean(X') ;
 for i=1:N
         X(i,:) = X(i,:) - (1/M)*sum(X(i,:));
 end
 
-% figure(4)
-% subplot(2,1,1);
-% plot(t1,X(1,:));
-% subplot(2,1,2);
-% plot(t2,X(2,:));
-% hold off
-
-% Wybielanie
-c   = cov(X')		 % covariance
+c   = cov(X');		 % covariance
 sq  = inv(sqrtm(c));        % inverse of square root
-mx  = mean(X')             % mean
+mx  = mean(X');             % mean
 XX  = X-mx'*ones(1,koniec); % subtract the mean
 XX  = 2*sq*XX;              
-cov(XX')                 % the covariance is now a diagonal matrix
+cov(XX');                 % the covariance is now a diagonal matrix
 % figure(5); 
-% plot(XX(1,:), XX(2,:), '.');
 
 % Inicjalizacja
 a = rand(1);
-w0 = [a,0];
-w0(2) = sqrt(1 - (w0(1)^2));
+w0 = [rand(1), rand(1), rand(1)];
+w0 = w0/norm(w0);
 w0 = w0';
-norm(w0)
+% norm(w0)
+B = zeros(3);
 
 % Iteracja
 XX = XX';
 eps = 1e-6;
 wi_1 = w0;
-Z = [XX(:,1) XX(:,2)]';
+Z = [XX(:,1) XX(:,2) XX(:,3)]';
 wi = zeros(size(wi_1));
+k = 1;
 while 1
-    pom = [0;0];
+    pom = [0;0;0];
     wi = Z*((wi_1'*Z)'.^3);
-    for i=1:1:2
+    for i=1:1:3
         for j=1:1:koniec
             pom(i)=pom(i)+wi(i);
         end
@@ -117,33 +108,45 @@ while 1
     wi = pom;
     wi = wi./koniec;
     wi = wi-3*wi_1;
-    wi = wi/norm(wi);
-    display(wi)
     
-    if ((wi'*wi_1)>1-eps) &&  ((wi'*wi_1)<1+eps)
-       break; 
+    if(k>1)
+        wi = wi - B*B'*wi;
     end
+    wi = wi/norm(wi);
+%     display(wi)
+    
+    if ((wi'*wi_1)>1-eps) &&  ((wi'*wi_1)<1+eps);
+        B(:,k) = wi;
+        k = k+1;
+        display(k)
+    end
+        if ((wi'*wi_1)>1-eps) &&  ((wi'*wi_1)<1+eps) && k==4;
+        break;
+        end
+
     wi_1 = wi;
 end
 
-vi = [ -wi(2); wi(1)];
+% vi = [ -wi(2); wi(1)];
 
-czyste = [wi'; vi']*Z;
+czyste = B'*Z;
 czyste = czyste/norm(czyste);
 czyste = czyste.*107.5;
 
 czyste1 = czyste(1,:);
 czyste2 = czyste(2,:);
+czyste3 = czyste(3,:);
 
 
-figure(6) 
-subplot(2,1,1)
-plot(t1,y1,'b-',t1,czyste1,'r-');
-axis([0 0.8 -5 5]);
-subplot(2,1,2)
-plot(t1,y2,'b-',t1,-czyste2,'r-');
-axis([0 0.8 -5 5]);
+% figure(6) 
+% subplot(2,1,1)
+% plot(t1,y1,'b-',t1,czyste1,'r-');
+% axis([0 0.8 -5 5]);
+% subplot(2,1,2)
+% plot(t1,y2,'b-',t1,-czyste2,'r-');
+% axis([0 0.8 -5 5]);
  sound(czyste1,Fs1)
  pause
  sound(czyste2,Fs1)
-sound(y1,Fs1)
+ pause 
+sound(czyste3,Fs1)
