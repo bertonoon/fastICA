@@ -3,7 +3,7 @@ format compact
 format long
 % Czytanie z pliku audio
 
-[y1,Fs1] = audioread('mial_ogromne_szczescie.wav');
+[y1,Fs1] = audioread('kocie_ruchy.wav');
 [y2,Fs2] = audioread('mialbym_ochote.wav');
 [y3,Fs3] = audioread('silnoreki.wav');
 
@@ -58,9 +58,12 @@ YM3 = 0.2*y1 + 0.5*y2 + 0.8*y3;
 % figure(3)
 % plot(Y1,Y2,'.');
 
-% sound(ym1,Fs1);
-% pause
-% sound(ym2,Fs1);
+sound(YM1,Fs1);
+pause
+sound(YM2,Fs1);
+pause
+sound(YM3,Fs1);
+pause
 
 % Centrowanie
 N = 3; % Iloœæ mieszanin
